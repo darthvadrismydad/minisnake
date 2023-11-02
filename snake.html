@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%; margin: 0">
+    <head>
+        <title>Draw</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script>
+            class Snake {
+                constructor(context, start, size) {
+                    this.context = context;
+                    this.start = start ?? { x: 0, y: 0 };
+                    this.pos = this.start;
+                    this.size = size ?? 30;
+                    this.sectionLength = 10;
+                    this.thickness = 10;
+                    this.body = [{...this.start, fill: context.getImageData(this.start.x, this.start.y, this.sectionLength, this.thickness) }];
+                    this.lastDirection = { x: 0, y: 0 };
+                }
+                reset() {
+                    this.body = [];
+                    this.pos = this.start;
+                    this.move({ x: 0, y: 0 });
+                }
+                move(direction) {
+                    const newX = this.pos.x + direction.x;
+                    const newY = this.pos.y + direction.y;
+
+                    if(this.body.length > this.size) {
+                        this.body.shift();
+                    }
+                    this.pos = { x: newX, y: newY };
+                    this.body.push({
+                        x: newX, 
+                        y: newY, 
+                    });
+                    this.lastDirection = direction;
+                    this.context.save();
+                    this.context.fillStyle = 'green';
+                    for(const { x, y } of this.body) {
+                        this.context.fillRect(x, y, this.sectionLength, this.thickness);
+                    }
+                    this.context.restore();
+                }
+                grow() {
+                    this.size += this.sectionLength;
+                }
+            }
+            class Food {
+                constructor(context) {
+                    this.context = context;
+                    this.sizeY = 20;
+                    this.sizeX = 20;
+                }
+
+                respawn(pos) {
+                    this.pos = pos;
+                    this.draw();
+                }
+
+                draw() {
+                    this.context.save();
+                    this.context.fillStyle = 'blue';
+                    this.context.fillRect(this.pos.x, this.pos.y, this.sizeX, this.sizeY);
+                    this.context.restore();
+                }
+
+                isEaten(pos) {
+                    const { x, y } = this.pos;
+                    const maxX = x + this.sizeX;
+                    const maxY = y + this.sizeY;
+                    const minX = x;
+                    const minY = y;
+                    return (pos.x - pos.w) <= maxX &&
+                        (pos.x + pos.w) >= minX &&
+                        pos.y <= maxY &&
+                        pos.y >= minY;
+                }
+            }
+            function resizeCanvas() {
+              const canvas = document.getElementById('drawing');
+              const ctx = canvas.getContext('2d');
+              const scale = window.devicePixelRatio;
+              canvas.width = window.innerWidth;
+              canvas.height = window.innerHeight;
+              ctx.scale(scale, scale);
+            }
+            function getDirection(key) {
+                switch(key) {
+                    case 'ArrowUp':
+                    case 'w':
+                        return { x: 0, y: -1 }
+                    case 'ArrowDown':
+                    case 's':
+                        return { x: 0, y: 1 }
+                    case 'ArrowLeft':
+                    case 'a':
+                        return { x: -1, y: 0 }
+                    case 'ArrowRight':
+                    case 'd':
+                        return { x: 1, y: 0 }
+                    case '.':
+                        return { x: 0, y: 0 };
+                    default: 
+                        break;
+                }
+            }
+            function isOutOfBounds(pos, bounds) {
+              const { minX, maxX, minY, maxY } = bounds;
+              return pos.x > maxX || pos.y > maxY || pos.x < minX || pos.y < minY;
+            }
+            function updateScore(ctx, snake, pos) {
+                ctx.save();
+                ctx.font = '40px Arial';
+                const text = `score: ${snake.size}`;
+                const maxLength = 200;
+                ctx.fillText(text, pos.x, pos.y, maxLength);
+                ctx.restore();
+            }
+            function updateFramerate(ctx, pos, frameRate) {
+                ctx.save();
+                ctx.font = '40px Arial';
+                const text = `${frameRate}f/s`;
+                const maxLength = 200;
+                ctx.fillText(text, pos.x, pos.y, maxLength);
+                ctx.restore();
+            }
+            function startGame() {
+                const canvas = document.getElementById("drawing"); 
+                const ctx = canvas.getContext("2d");
+                // start in the center of the screen
+                const snake = new Snake(
+                    ctx, 
+                    { x: Math.floor(window.innerWidth / 2), y: Math.floor(window.innerHeight / 2) },
+                    10
+                );
+                const food = new Food(ctx);
+                resizeCanvas(canvas);
+                let token = null;
+                food.respawn({
+                    x: (window.innerWidth - 300) * Math.random(),
+                    y: (window.innerHeight - 300) * Math.random()
+                });
+                let lastDirection = { x: 0, y: 0 };
+                window.addEventListener('keyup', function(e) {
+                    let direction = getDirection(e.key);
+                    // prevent backwards movement
+                    if(direction && (direction.x === -lastDirection.x && direction.y === 0
+                       || direction.y === -lastDirection.y && direction.x === 0)) {
+                        return;
+                    } else if(direction) {
+                        lastDirection = direction;
+                    }
+                    if(!direction && e.key !== 'p') return;
+
+                    if(token) clearTimeout(token);
+
+                    const bounds = {
+                        maxX: canvas.width,
+                        minX: 50,
+                        maxY: canvas.height,
+                        minY: 100
+                    };
+
+                    // special pause key
+                    if(e.key === 'p') return;
+
+                    function nextFrame(lastTime) {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        snake.move(direction);
+                        updateScore(ctx,snake, { x: bounds.minX, y: bounds.minY - 50 });
+                        //updateFramerate(ctx, { x: bounds.minX, y: bounds.minY }, Math.floor(1000 / (Date.now() - lastTime)));
+                        if(isOutOfBounds(snake.pos, bounds)) {
+                            snake.reset();
+                            lastDirection = { x: 0, y: 0 };
+                            return;
+                        }
+                        if(food.isEaten({...snake.pos, w: snake.thickness})) {
+                            food.respawn({
+                                x: ((canvas.width - 300) * Math.random()) + 300,
+                                y: ((canvas.height - 300) * Math.random()) + 300
+                            });
+                            snake.grow();
+                        } else {
+                            food.draw();
+                        }
+                        token = setTimeout(nextFrame.bind(this, Date.now()), 5);
+                    }
+                    token = setTimeout(nextFrame.bind(this, Date.now()), 0);
+                });
+            }
+            window.addEventListener('resize', resizeCanvas);
+            window.addEventListener('load', startGame);
+        </script>
+    </head>
+    <body style="height: 100%; margin: 0">
+        <canvas id="drawing" style="display: block"></canvas>
+    </body>
+</html>
+
+
