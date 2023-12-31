@@ -4,6 +4,9 @@ export const BACKGROUND_LAYER = 0;
 
 export class Renderer {
 
+    /**
+     * @param {CanvasRenderingContext2D} ctx
+     */
     constructor(ctx) {
         this.sources = [];
         this.ctx = ctx;
@@ -27,7 +30,21 @@ export class Renderer {
             if (!layer) continue;
             for (const source of layer) {
                 for (const item of source.draw()) {
-                    if (item.kind === 'text') {
+                    if(item.kind === 'freeform') {
+                        console.log(item.coords);
+                        const { coords, t, style } = item;
+                        this.ctx.beginPath();
+                        this.ctx.lineWidth = t;
+                        const [start, ...rest] = coords;
+                        this.ctx.moveTo(start.x, start.y);
+                        for (const { x, y } of rest) {
+                            this.ctx.lineTo(x, y);
+                        }
+                        this.ctx.strokeStyle = style;
+                        this.ctx.stroke();
+                        this.ctx.closePath();
+                    }
+                    else if (item.kind === 'text') {
                         const { x, y, style, text, size } = item;
                         this.ctx.font = `${size}px ${style}`;
                         const { width } = this.ctx.measureText(text);

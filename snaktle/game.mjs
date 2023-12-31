@@ -1,8 +1,10 @@
 import { BACKGROUND_LAYER, Renderer } from './renderer.mjs';
 import { Snake } from './snake.mjs';
+import { Sprite } from './sprite.mjs';
 import { Food } from './food.mjs';
 import { Scoreboard } from './scoreboard.mjs';
 import { Controller } from './controller.mjs';
+import { Moveable } from './moveable.mjs';
 
 function resizeCanvas() {
     const canvas = document.getElementById('drawing');
@@ -35,14 +37,24 @@ function startGame() {
     };
 
     const controller = new Controller();
-
-    const snake = new Snake(
-        // start in the center of the screen
-        { x: Math.floor(canvas.width / 2), y: Math.floor(canvas.height / 2) },
-        1000
+    const snake = new Snake(100, 1);
+    const head = new Sprite(
+        [
+            { x: 0, y: 0 },
+            { x: 10, y: 0 },
+            { x: 10, y: 10 },
+            { x: 0, y: 10 },
+        ],
+        'green',
+        4
     );
 
-    controller.attach(snake.setDirection.bind(snake));
+    const moving = new Moveable(
+        { x: Math.floor(canvas.width / 2), y: Math.floor(canvas.height / 2) },
+        1,
+        [head, snake]);
+
+    controller.attach(moving.setDirection.bind(moving));
 
     const foodSize = { x: 20, y: 20 };
     const food = new Food(
@@ -57,7 +69,7 @@ function startGame() {
     });
 
     renderer.withSources(
-        snake,
+        moving,
         food,
         scoreboard,
         {
@@ -76,21 +88,16 @@ function startGame() {
 
     let token = null;
 
-    // const speed = document.getElementById('speed');
-    // speed.addEventListener('change', function(e) {
-    //     snake.speed = snake.initial.speed = e.target?.value ?? 1;
-    // });
-
     setInterval(function() {
         scoreboard.set('score', snake.size);
         scoreboard.set('bounds', `${canvas.height}, ${canvas.width}`);
-        scoreboard.set('snake', `${Math.floor(snake.pos.x)}, ${Math.floor(snake.pos.y)}`);
+        scoreboard.set('snake', `${Math.floor(moving.pos.x)}, ${Math.floor(moving.pos.y)}`);
     }, 200);
 
     function update() {
-        if (isOutOfBounds(snake.pos, bounds)) {
-            snake.reset();
-        } else if (food.isEaten({ ...snake.pos, w: snake.thickness })) {
+        if (isOutOfBounds(moving.pos, bounds)) {
+            moving.reset();
+        } else if (food.isEaten({ ...moving.pos, w: snake.thickness })) {
             food.respawn({
                 x: Math.min(bounds.maxX - food.sizeX, bounds.minX + (bounds.maxX * Math.random())),
                 y: Math.min(bounds.maxY - food.sizeY, bounds.minY + (bounds.maxY * Math.random()))

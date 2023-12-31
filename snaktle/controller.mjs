@@ -35,6 +35,11 @@ export class Controller {
 
             if (!direction) return;
 
+            if(this.lastDirection.x === 0 && this.lastDirection.y === 0) {
+                onMove(direction);
+                return;
+            }
+
             // prevent backwards movement
             if (direction.x === -this.lastDirection.x && direction.y === 0
                 || direction.y === -this.lastDirection.y && direction.x === 0) {
