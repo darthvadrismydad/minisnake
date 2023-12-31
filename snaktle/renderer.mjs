@@ -31,7 +31,7 @@ export class Renderer {
             for (const source of layer) {
                 for (const item of source.draw()) {
                     if(item.kind === 'freeform') {
-                        console.log(item.coords);
+                        // console.log(item.coords);
                         const { coords, t, style } = item;
                         this.ctx.beginPath();
                         this.ctx.lineWidth = t;

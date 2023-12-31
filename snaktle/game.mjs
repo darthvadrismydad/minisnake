@@ -37,9 +37,13 @@ function startGame() {
     };
 
     const controller = new Controller();
-    const snake = new Snake(100, 1);
+    const snake = new Snake(100, 10);
     const head = new Sprite(
         [
+            { x: 0, y: 0 },
+            { x: 10, y: 0 },
+            { x: 10, y: 10 },
+            { x: 0, y: 10 },
             { x: 0, y: 0 },
             { x: 10, y: 0 },
             { x: 10, y: 10 },

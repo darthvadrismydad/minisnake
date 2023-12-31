@@ -7,7 +7,7 @@ export class Moveable {
     constructor(pos, speed, skele) {
         this.skele = skele;
         this.initialPos = pos;
-        this.pos = this.initialPos;
+        this.pos = { ...pos };
         this.speed = speed ?? 1;
         this.direction = { x: 0, y: 0 };
     }
@@ -31,7 +31,7 @@ export class Moveable {
 
     reset() {
         this.direction = { x: 0, y: 0 };
-        this.pos = this.initialPos;
+        this.pos = { ...this.initialPos };
     }
 
     *draw() {
@@ -48,12 +48,5 @@ export class Moveable {
                 yield item;
             }
         }
-
-        // yield {
-        //     ...this.pos,
-        //     t: 10,
-        //     h: 10,
-        //     style: 'red'
-        // };
     }
 }

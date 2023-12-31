@@ -1,3 +1,5 @@
+import { Dequeue } from './dequeue.mjs';
+
 export class Snake {
 
     constructor(size, growthRate) {
@@ -5,16 +7,16 @@ export class Snake {
         this.size = this.initialSize;
         this.sectionLength = 10;
         this.thickness = 10;
-        this.body = [];
+        this.body = new Dequeue();
         this.color = 'green';
         this.growthRate = growthRate ?? 1;
     }
 
     move(pos) {
-        if (this.body.length > this.size) {
-            this.body.shift();
+        if (this.body.size > this.size) {
+            this.body.removeBack();
         }
-        this.body.push(pos);
+        this.body.addFront(pos);
     }
 
     *draw() {
@@ -31,7 +33,7 @@ export class Snake {
 
     reset() {
         this.size = this.initialSize;
-        this.body = [];
+        this.body = new Dequeue();
     }
 
     grow() {

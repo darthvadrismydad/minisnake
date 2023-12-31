@@ -35,7 +35,7 @@ export class Controller {
 
             if (!direction) return;
 
-            if(this.lastDirection.x === 0 && this.lastDirection.y === 0) {
+            if(direction.x === 0 && direction.y === 0) {
                 onMove(direction);
                 return;
             }
