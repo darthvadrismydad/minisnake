@@ -13,10 +13,6 @@ export class Scoreboard {
         this.scores[name] = score;
     }
 
-    average(name, score) {
-        this.scores[name] = Math.round(((this.scores[name] ?? score) + score) / 2)
-    }
-
     *draw() {
         const text = Object.entries(this.scores).map(s => s.join(': ')).join(' | ');
         yield {

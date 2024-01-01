@@ -66,7 +66,7 @@ export class Renderer {
                 for (const b of objects) {
                     if (a !== b) {
                         const isOverlapping = a.overlapTest(b);
-                        if (isOverlapping) {
+                        if (isOverlapping && a.onOverlap) {
                            a.onOverlap(b); 
                         }
                     }
