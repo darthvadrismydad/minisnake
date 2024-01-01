@@ -22,6 +22,9 @@ export class Snake {
     *draw() {
         for (const { x, y } of this.body) {
             yield {
+                coords: [
+                    { x, y }
+                ],
                 x,
                 y,
                 h: this.sectionLength,

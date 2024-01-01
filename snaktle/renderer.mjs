@@ -1,3 +1,5 @@
+import { Collide } from "./collide.mjs";
+
 export const TEXT_LAYER = 1;
 export const SPRITE_LAYER = 2;
 export const BACKGROUND_LAYER = 0;
@@ -10,7 +12,6 @@ export class Renderer {
     constructor(ctx) {
         this.sources = [];
         this.ctx = ctx;
-        this.frameCount = 0;
     }
 
     withSources(...sources) {
@@ -26,12 +27,15 @@ export class Renderer {
     renderFrame() {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.ctx.save();
+        const objects = [];
         for (const layer of this.sources) {
             if (!layer) continue;
             for (const source of layer) {
                 for (const item of source.draw()) {
-                    if(item.kind === 'freeform') {
-                        // console.log(item.coords);
+                    if (item.kind === 'bounds') {
+                        objects.push(item);
+                    }
+                    else if (item.kind === 'freeform') {
                         const { coords, t, style } = item;
                         this.ctx.beginPath();
                         this.ctx.lineWidth = t;
@@ -53,6 +57,18 @@ export class Renderer {
                         const { x, y, h, t, style } = item;
                         this.ctx.fillStyle = style;
                         this.ctx.fillRect(x, y, h, t);
+                    }
+                }
+            }
+        }
+        if (objects.length > 1) {
+            for (const a of objects) {
+                for (const b of objects) {
+                    if (a !== b) {
+                        const isOverlapping = a.overlapTest(b);
+                        if (isOverlapping) {
+                           a.onOverlap(b); 
+                        }
                     }
                 }
             }
