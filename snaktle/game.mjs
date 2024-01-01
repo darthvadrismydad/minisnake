@@ -7,7 +7,7 @@ import { Scoreboard } from './scoreboard.mjs';
 import { Controller } from './controller.mjs';
 import { Collide } from './collide.mjs';
 import { Moveable } from './moveable.mjs';
-import { Bot } from './bot.mjs';
+import { Bot, ChaosBot } from './bot.mjs';
 
 function resizeCanvas() {
     const canvas = document.getElementById('drawing');
@@ -57,23 +57,24 @@ function startGame() {
     const moving = new Moveable(
         { x: Math.floor(canvas.width / 2), y: Math.floor(canvas.height / 2) },
         1,
-        [head, snake]);
+        [head, snake]
+    );
 
     controller.attach(moving.setDirection.bind(moving));
 
-    // const food = new Sprite(
-    //     [
-    //         { x: 0, y: 0 },
-    //         { x: 100, y: 0 },
-    //         { x: 100, y: 100 },
-    //         { x: 0, y: 100 },
-    //         { x: 0, y: 0 },
-    //     ],
-    //     'black',
-    //     1
-    // );
+    const food = new Sprite(
+        [
+            { x: 0, y: 0 },
+            { x: 10, y: 0 },
+            { x: 10, y: 10 },
+            { x: 0, y: 10 },
+            { x: 0, y: 0 },
+        ],
+        'black',
+        1
+    );
 
-    const food = new GipptySprite('star 10px', 'black');
+    // const food = new GipptySprite('star 10px', 'black');
 
     food.move({
         x: Math.floor(canvas.width / 3),
@@ -85,15 +86,37 @@ function startGame() {
         y: 50
     });
 
-    // const enemy = new Bot([
-    //     { x: 1, y: 0 },
-    //     { x: 0, y: 1 },
-    //     { x: -1, y: 0 },
-    //     { x: 0, y: -1 },
-    // ]);
+    const enemyRoute = new ChaosBot([
+        { x: 1, y: 0 },
+        { x: 0, y: 1 },
+        { x: -1, y: 0 },
+        { x: 0, y: -1 },
+    ]);
+
+    const enemies = Array(100).fill(0).map((_, i) => {
+        const e = new Moveable(
+            { x: Math.floor(canvas.width / 2), y: Math.floor(canvas.height / ((Math.random() * 100) % 6)) },
+            1,
+            new Sprite(
+                [
+                    { x: 10, y: 10 },
+                    { x: 0, y: 10 },
+                    { x: 0, y: 0 },
+                    { x: 10, y: 0 },
+                    { x: 10, y: 10 },
+                    { x: 0, y: 10 },
+                ],
+                'red',
+                4
+            )
+        );
+        enemyRoute.attach(e.setDirection.bind(e));
+        return new Collide(e, 10, () => console.log("enemy hit", i));
+    });
+
 
     renderer.withSources(
-        new Collide(moving, 10, () => {}),
+        new Collide(moving, 10, () => { }),
         new Collide(food, 10, () => {
             food.move({
                 x: Math.floor(Math.random() * (bounds.maxX - bounds.minX)) + bounds.minX,
@@ -101,6 +124,8 @@ function startGame() {
             });
             snake.grow();
         }),
+        new Collide(head, 1, () => { }),
+        ...enemies,
         scoreboard,
         // {
         //     layer: BACKGROUND_LAYER,
@@ -117,10 +142,11 @@ function startGame() {
     );
 
     let token = null;
+    let lastUpdate = Date.now();
 
     setInterval(function() {
-        // scoreboard.set('score', snake.size);
-        // scoreboard.set('bounds', `${canvas.height}, ${canvas.width}`);
+        scoreboard.set('score', snake.size);
+        scoreboard.set('bounds', `${canvas.height}, ${canvas.width}`);
         scoreboard.set('snake', `${Math.floor(moving.pos.x)}, ${Math.floor(moving.pos.y)}`);
     }, 200);
 
@@ -128,6 +154,9 @@ function startGame() {
 
     function update() {
         renderer.renderFrame();
+        const now = Date.now();
+        scoreboard.average('fps', Math.floor(1000 / (now - lastUpdate)));
+        lastUpdate = now;
         token = setTimeout(update, tick);
     }
     token = setTimeout(update, tick);

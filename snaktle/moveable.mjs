@@ -22,10 +22,10 @@ export class Moveable {
 
         if (Array.isArray(this.skele)) {
             for (const s of this.skele) {
-                s.move({...this.pos});
+                s.move?.({...this.pos});
             }
         } else {
-            this.skele.move({...this.pos});
+            this.skele.move?.({...this.pos});
         }
     }
 

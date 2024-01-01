@@ -5,8 +5,9 @@ export class GipptySprite {
     layer = SPRITE_LAYER;
 
     constructor(input, color) {
+        this.storedActions = [];
         this.color = color ?? 'white';
-        this.shape = [{ x: 0, y: 0 }];
+        this.shape = [];
         fetch('http://localhost:3000/update', {
             method: 'POST',
             headers: {
@@ -16,15 +17,22 @@ export class GipptySprite {
         }).then(r => r.json()).then(({ points }) => {
             console.log("sprite generated");
             this.shape = points;
+            this.storedActions.forEach(a => a());
         });
     }
 
     move(pos) {
-        this.body = this.shape.map(({ x, y }) => ({ x: x + pos.x, y: y + pos.y }))
+        if (this.shape.length === 0) {
+            this.storedActions.push(() => {
+                this.body = this.shape.map(({ x, y }) => ({ x: x + pos.x, y: y + pos.y }))
+            });
+        } else {
+            this.body = this.shape.map(({ x, y }) => ({ x: x + pos.x, y: y + pos.y }))
+        }
     }
 
     *draw() {
-        if (this.body.length === 0) return;
+        if (!this.body || this.body.length === 0) return;
 
         yield {
             kind: 'freeform',

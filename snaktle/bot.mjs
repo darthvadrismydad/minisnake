@@ -14,3 +14,19 @@ export class Bot {
         }, 1000);
     }
 }
+
+export class ChaosBot {
+
+    /**
+     * @param {{ x: number, y: number }[]} orders
+     */
+    constructor(orders) {
+        this.order = orders;
+    }
+
+    attach(onMove) {
+        setInterval(() => {
+            onMove(this.order[Math.floor((Math.random() * 1000)) % this.order.length]);
+        }, 1000);
+    }
+}
