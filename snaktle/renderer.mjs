@@ -1,5 +1,3 @@
-import { Collide } from "./collide.mjs";
-
 export const TEXT_LAYER = 1;
 export const SPRITE_LAYER = 2;
 export const BACKGROUND_LAYER = 0;

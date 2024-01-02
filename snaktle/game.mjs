@@ -1,5 +1,5 @@
-import { BACKGROUND_LAYER, Renderer } from './renderer.mjs';
-import { setup } from './new.mjs';
+import { Renderer } from './renderer.mjs';
+import { setup } from './config.mjs';
 
 function resizeCanvas() {
     const canvas = document.getElementById('drawing');
