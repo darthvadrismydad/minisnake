@@ -1,5 +1,3 @@
-import { SPRITE_LAYER } from "./renderer.mjs";
-
 function centroid(a) {
     let cx = 0;
     let cy = 0;
@@ -22,17 +20,15 @@ function distance(a, b) {
 
 export class Collide {
 
-    layer = SPRITE_LAYER;
-
     constructor(source, size, onOverlap) {
         this.source = source;
         this.size = size ?? source.size ?? 1;
         this.onOverlap = onOverlap;
     }
 
-    *draw() {
+    *emit() {
         const coords = [];
-        for (const item of this.source.draw()) {
+        for (const item of this.source.emit()) {
             coords.push(item.coords);
             yield item;
         }

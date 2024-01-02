@@ -1,11 +1,17 @@
 export class Lifetime {
 
     constructor(source) {
+        this.source = source;
+    }
+
+    terminate() {
+        this.expired = true;
     }
 
     *draw() {
-        for (const source of this.sources) {
-            yield* source.draw();
+        if(this.expired) {
+            yield 'expired';
         }
+        return this.source.draw();
     }
 }

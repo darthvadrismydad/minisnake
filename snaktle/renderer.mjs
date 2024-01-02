@@ -14,7 +14,7 @@ export class Renderer {
         this.ctx = ctx;
     }
 
-    withSources(...sources) {
+    withSources(sources) {
         for (const source of sources) {
             const layer = source.layer ?? 0;
             if (!this.sources[layer]) {
@@ -31,11 +31,21 @@ export class Renderer {
         for (const layer of this.sources) {
             if (!layer) continue;
             for (const source of layer) {
-                for (const item of source.draw()) {
+                for (const item of source.emit()) {
                     if (item.kind === 'bounds') {
                         objects.push(item);
                     }
-                    else if (item.kind === 'freeform') {
+                    else if (item.kind === 'rect') {
+                        const { x, y, h, t, style } = item;
+                        this.ctx.fillStyle = style;
+                        this.ctx.fillRect(x, y, h, t);
+                    }
+                    else if (item.kind === 'text') {
+                        const { x, y, style, text, size } = item;
+                        this.ctx.font = `${size}px ${style}`;
+                        const { width } = this.ctx.measureText(text);
+                        this.ctx.fillText(text, x, y, width);
+                    } else {
                         const { coords, t, style } = item;
                         this.ctx.beginPath();
                         this.ctx.lineWidth = t;
@@ -48,16 +58,6 @@ export class Renderer {
                         this.ctx.stroke();
                         this.ctx.closePath();
                     }
-                    else if (item.kind === 'text') {
-                        const { x, y, style, text, size } = item;
-                        this.ctx.font = `${size}px ${style}`;
-                        const { width } = this.ctx.measureText(text);
-                        this.ctx.fillText(text, x, y, width);
-                    } else {
-                        const { x, y, h, t, style } = item;
-                        this.ctx.fillStyle = style;
-                        this.ctx.fillRect(x, y, h, t);
-                    }
                 }
             }
         }
@@ -67,7 +67,7 @@ export class Renderer {
                     if (a !== b) {
                         const isOverlapping = a.overlapTest(b);
                         if (isOverlapping && a.onOverlap) {
-                           a.onOverlap(b); 
+                            a.onOverlap(b);
                         }
                     }
                 }

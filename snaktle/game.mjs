@@ -1,5 +1,5 @@
 import { BACKGROUND_LAYER, Renderer } from './renderer.mjs';
-import { configureSources } from './config.mjs';
+import { setup } from './new.mjs';
 
 function resizeCanvas() {
     const canvas = document.getElementById('drawing');
@@ -31,24 +31,9 @@ function startGame() {
     let lastUpdate = Date.now();
     let fps = { value: 0 };
 
-    const sources = configureSources(canvas, bounds, fps);
+    const sources = setup(bounds); // configureSources(canvas, bounds, fps);
 
-    renderer.withSources(
-        ...sources,
-        {
-            layer: BACKGROUND_LAYER,
-            *draw() {
-                yield {
-                    style: 'black',
-                    x: bounds.minX,
-                    y: bounds.minY,
-                    h: bounds.maxX - bounds.minX,
-                    t: bounds.maxY - bounds.minY,
-                }
-            }
-        }
-    );
-
+    renderer.withSources(sources);
 
     const tick = 0;
 
