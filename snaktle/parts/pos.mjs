@@ -1,4 +1,4 @@
-export class Static {
+export class Point {
     constructor(pos) {
         this.pos = pos;
     }

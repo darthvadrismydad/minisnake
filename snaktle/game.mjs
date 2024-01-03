@@ -31,7 +31,7 @@ function startGame() {
     let lastUpdate = Date.now();
     let fps = { value: 0 };
 
-    const sources = setup(bounds); // configureSources(canvas, bounds, fps);
+    const sources = setup(bounds, fps);
 
     renderer.withSources(sources);
 

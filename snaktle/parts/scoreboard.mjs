@@ -1,8 +1,4 @@
-import { TEXT_LAYER } from "./renderer.mjs";
-
 export class Scoreboard {
-
-    layer = TEXT_LAYER;
 
     constructor(pos) {
         this.scores = {};
@@ -13,7 +9,7 @@ export class Scoreboard {
         this.scores[name] = score;
     }
 
-    *draw() {
+    *emit() {
         const text = Object.entries(this.scores).map(s => s.join(': ')).join(' | ');
         yield {
             x: this.pos.x,
