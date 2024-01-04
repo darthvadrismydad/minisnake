@@ -1,21 +1,22 @@
 import { BACKGROUND_LAYER, SPRITE_LAYER, TEXT_LAYER } from './renderer.mjs';
 import { merge } from './genutils.mjs';
-import { Collide, Block, Paint, Layer, Sum, Point, Tail, Shape, Controller, Bot, Scoreboard, Lifetime } from './parts/index.mjs';
+import { CircleCollide, BoxCollide, Block, Paint, Layer, Sum, Point, Tail, Shape, Controller, Scoreboard, Lifetime } from './parts/index.mjs';
 
 function player(startingPos) {
     return new Sum(
         new Controller(),
-        startingPos
+        startingPos,
+        1
     );
 }
 
-function* snake(source, color) {
+function* snake(source, { color, growthFactor }) {
 
     const tail = new Tail(source, 100);
 
     yield new Block(tail, 10, 10, color);
 
-    yield new Collide(
+    yield new CircleCollide(
         new Paint(
             new Shape(
                 [
@@ -31,8 +32,17 @@ function* snake(source, color) {
             color,
             4
         ),
-        10,
-        () => tail.size++
+        1,
+        (e) => {
+            if(e.tag === 'end') {
+                tail.size = 0;
+                source.notify();
+                return;
+            }
+            if (e.tag === 'bg') return;
+            tail.size += growthFactor;
+        },
+        'snake'
     );
 }
 
@@ -43,7 +53,7 @@ function* box(bounds) {
     });
 
     const life = new Lifetime(
-        new Collide(
+        new CircleCollide(
             new Paint(
                 new Shape(
                     [
@@ -57,7 +67,8 @@ function* box(bounds) {
                     point
                 ), 10, 10, 'red'),
             10,
-            () => {
+            (e) => {
+                if (e.tag === 'bg') return;
                 life.expired = true;
             }
         ));
@@ -79,23 +90,27 @@ export function setup(bounds) {
         new Layer(TEXT_LAYER, [scores]),
         new Layer(SPRITE_LAYER,
             merge(
-                snake(player({ x: 100, y: 100 }), 'green'),
-                multiply(100, box.bind(null, bounds)),
-                snake(new Sum(new Bot([
-                    { x: 1, y: 0 },
-                    { x: 0, y: 1 },
-                    { x: 0, y: -1 },
-                ], 1), { x: 500, y: 500 }), 'yellow')
+                snake(player({ x: 100, y: 100 }), { color: 'green', growthFactor: 10 }),
+                // multiply(100, box.bind(null, bounds)),
             ),
         ),
         new Layer(BACKGROUND_LAYER, [
-            new Block(
-                new Point({ x: bounds.minX, y: bounds.minY }),
-                bounds.maxX - bounds.minX,
-                bounds.maxY - bounds.minY,
-                'black'
-            )
-        ])
+            new BoxCollide(
+                new Block(
+                    new Point({
+                        x: bounds.minX,
+                        y: bounds.minY
+                    }),
+                    bounds.maxX - bounds.minX,
+                    bounds.maxY - bounds.minY,
+                    'black'
+                ),
+                (e) => {
+                   e.onOverlap({ tag: 'end' }); 
+                },
+                true,
+                'bg'
+            )])
     ];
 }
 

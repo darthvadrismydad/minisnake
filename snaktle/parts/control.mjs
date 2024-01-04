@@ -2,6 +2,7 @@ export class Controller {
 
     constructor() {
         this.lastDirection = { x: 0, y: 0 };
+
         document.addEventListener('keyup', (e) => {
             const direction = this.getDirection(e.key);
 
@@ -43,6 +44,10 @@ export class Controller {
         }
     }
 
+    notify() {
+        this.lastDirection = { x: 0, y: 0 };
+    }
+
     *emit() {
         yield this.lastDirection;
     }
@@ -53,11 +58,14 @@ export class Bot {
     /**
      * @param {{ x: number, y: number }[]} orders
      */
-    constructor(orders, tick) {
+    constructor(orders, randomize, tick) {
         this.order = orders;
         this.currentOrder = orders[0];
+        const indexFn = randomize ? 
+            (o) => o[Math.floor((Math.random() * 1000)) % this.order.length]
+            : (o) => o[++this.lastOrder % this.order.length];
         setInterval(() => {
-            this.currentOrder = this.order[++this.lastOrder % this.order.length];
+            this.currentOrder = indexFn(this.order);
         }, tick ?? 1000);
         this.lastOrder = this.order.length - 1;
     }
@@ -67,18 +75,3 @@ export class Bot {
     }
 }
 
-export class ChaosBot {
-
-    /**
-     * @param {{ x: number, y: number }[]} orders
-     */
-    constructor(orders) {
-        this.order = orders;
-    }
-
-    attach(onMove) {
-        setInterval(() => {
-            onMove(this.order[Math.floor((Math.random() * 1000)) % this.order.length]);
-        }, 1000);
-    }
-}
