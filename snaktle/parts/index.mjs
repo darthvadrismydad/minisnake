@@ -6,3 +6,4 @@ export * from './tail.mjs';
 export * from './scoreboard.mjs';
 export * from './collide.mjs';
 export * from './lifetime.mjs';
+export * from './text.mjs';

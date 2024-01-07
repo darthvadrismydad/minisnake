@@ -1,6 +1,20 @@
 import { BACKGROUND_LAYER, SPRITE_LAYER, TEXT_LAYER } from './renderer.mjs';
 import { merge } from './genutils.mjs';
-import { CircleCollide, BoxCollide, Block, Paint, Layer, Sum, Point, Tail, Shape, Controller, Scoreboard, Lifetime } from './parts/index.mjs';
+import {
+    CircleCollide,
+    BoxCollide,
+    Block,
+    Paint,
+    Layer,
+    Sum,
+    Point,
+    Tail,
+    Shape,
+    Controller,
+    Lifetime,
+    Text,
+    Scoreboard
+} from './parts/index.mjs';
 
 function player(startingPos) {
     return new Sum(
@@ -10,9 +24,10 @@ function player(startingPos) {
     );
 }
 
-function* snake(source, { color, growthFactor }) {
+function* snake(source, { color, growthFactor, score }) {
 
-    const tail = new Tail(source, 100);
+    const tail = new Tail(source, growthFactor);
+    score.value = tail.size - growthFactor;
 
     yield new Block(tail, 10, 10, color);
 
@@ -34,13 +49,14 @@ function* snake(source, { color, growthFactor }) {
         ),
         1,
         (e) => {
-            if(e.tag === 'end') {
+            if (e.tag === 'end') {
                 tail.size = 0;
                 source.notify();
                 return;
             }
             if (e.tag === 'bg') return;
             tail.size += growthFactor;
+            score.value = tail.size;
         },
         'snake'
     );
@@ -82,16 +98,26 @@ function* multiply(times, source) {
     }
 }
 
-export function setup(bounds) {
-    const scores = new Scoreboard({ x: bounds.minX, y: 50 });
-    scores.set("score", 0);
-
+export function setup(bounds, fps) {
+    const score = { value: 0 };
     return [
-        new Layer(TEXT_LAYER, [scores]),
+        new Layer(TEXT_LAYER, [
+            new Text(
+                new Point({ x: bounds.minX, y: bounds.minY - 10 }),
+                () => Object.entries({
+                    score,
+                    fps
+                }).map(([k, v]) => `${k}: ${v.value}`).join(' | '),
+            ),
+        ]),
         new Layer(SPRITE_LAYER,
             merge(
-                snake(player({ x: 100, y: 100 }), { color: 'green', growthFactor: 10 }),
-                // multiply(100, box.bind(null, bounds)),
+                snake(player({ x: 100, y: 100 }), { 
+                    color: 'green', 
+                    growthFactor: 10 ,
+                    score: score
+                }),
+                multiply(100, box.bind(null, bounds)),
             ),
         ),
         new Layer(BACKGROUND_LAYER, [
@@ -106,7 +132,7 @@ export function setup(bounds) {
                     'black'
                 ),
                 (e) => {
-                   e.onOverlap({ tag: 'end' }); 
+                    e.onOverlap({ tag: 'end' });
                 },
                 true,
                 'bg'

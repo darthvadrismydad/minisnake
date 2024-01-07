@@ -3,7 +3,7 @@ export class Controller {
     constructor() {
         this.lastDirection = { x: 0, y: 0 };
 
-        document.addEventListener('keyup', (e) => {
+        document.addEventListener('keydown', (e) => {
             const direction = this.getDirection(e.key);
 
             if (!direction) return;
